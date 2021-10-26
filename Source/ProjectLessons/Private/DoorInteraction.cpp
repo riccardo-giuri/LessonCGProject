@@ -2,6 +2,7 @@
 
 
 #include "DoorInteraction.h"
+#include "GameFramework/Actor.h"
 
 // Sets default values for this component's properties
 UDoorInteraction::UDoorInteraction()
@@ -18,12 +19,10 @@ UDoorInteraction::UDoorInteraction()
 void UDoorInteraction::BeginPlay()
 {
 	Super::BeginPlay();
+	StartRotation = GetOwner()->GetActorRotation();
+	FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
 
-	FRotator DesiredRotation(0.0f, 90.0f, 0.0f);
-	GetOwner()->SetActorRotation(DesiredRotation);
-
-	// ...
-	
+	CurrentRotationTime = 0.0f;
 }
 
 
@@ -31,7 +30,13 @@ void UDoorInteraction::BeginPlay()
 void UDoorInteraction::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	
+	if(CurrentRotationTime < TimeToRotate)
+	{
+		CurrentRotationTime += DeltaTime;
+		const float RotationAlpha = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
+		const FRotator CurrentRotation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
+		GetOwner()->SetActorRotation(CurrentRotation);
+	}
 }
 
